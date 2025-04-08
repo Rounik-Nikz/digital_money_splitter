@@ -1,0 +1,208 @@
+body {
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    margin: 0;
+    padding: 20px;
+    color: #333;
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.logout {
+    float: right;
+    text-decoration: none;
+    color: #e74c3c;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+.logout:hover {
+    color: #c0392b;
+}
+
+.welcome-message {
+    margin-top: 0;
+    font-size: 2rem;
+    color: #333;
+    font-weight: 600;
+}
+
+.user-email {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 15px;
+    font-weight: 600;
+    border-bottom: 2px solid #f4f4f4;
+    padding-bottom: 5px;
+}
+
+.success-message {
+    color: #2ecc71;
+    font-size: 1rem;
+    margin-bottom: 15px;
+    background: #eafaf1;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.error-message {
+    color: #e74c3c;
+    font-size: 1rem;
+    margin-bottom: 15px;
+    background: #fdecea;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.group-form {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.form-input {
+    flex: 1;
+    padding: 14px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    background-color: #f9f9f9;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-input:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 6px rgba(52, 152, 219, 0.5);
+    outline: none;
+}
+
+.form-button {
+    padding: 14px 20px;
+    background: linear-gradient(135deg, #4a90e2, #007bff);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-button:hover {
+    background: linear-gradient(135deg, #357ab8, #0056b3);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.group-list,
+.invited-group-list {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.group-item,
+.invited-group-item {
+    background: #ffffff;
+    margin-bottom: 15px;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.group-item:hover,
+.invited-group-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.group-date {
+    color: gray;
+    font-size: 0.9rem;
+}
+
+.manage-link,
+.view-link {
+    padding: 8px 16px;
+    background: #3498db;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.manage-link:hover,
+.view-link:hover {
+    background: #2980b9;
+    transform: translateY(-2px);
+}
+
+.no-groups-message,
+.no-invited-groups-message {
+    font-size: 1rem;
+    color: #555;
+    margin-top: 10px;
+    text-align: center;
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+/* Add subtle fade-in animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    .container {
+        padding: 20px;
+    }
+
+    .welcome-message {
+        font-size: 1.5rem;
+    }
+
+    .form-button {
+        font-size: 13px;
+    }
+
+    .group-item,
+    .invited-group-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .manage-link,
+    .view-link {
+        margin-top: 10px;
+    }
+}
