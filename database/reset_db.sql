@@ -1,3 +1,4 @@
+USE money_splitter;
 SET FOREIGN_KEY_CHECKS = 0;
 TRUNCATE TABLE expense_shares;
 TRUNCATE TABLE expenses;

@@ -52,66 +52,182 @@ $joined_groups = $stmt->fetchAll();
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="en" class="transition duration-300">
 <head>
-    <title>Dashboard - Money Splitter</title>
-    <link rel="stylesheet" href="./assests/css/dashboard.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard - Money Splitter</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+    }
+  </script>
 </head>
-<body>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition duration-300">
 
-<div class="container">
-    <a href="logout.php" class="logout">Logout</a>
-    <h2 class="welcome-message">Welcome, <?php echo htmlspecialchars($username); ?> 👋</h2>
-    <p class="user-email">Your email: <?php echo htmlspecialchars($email); ?></p>
+  <!-- Header -->
+  <header class="flex items-center justify-between bg-white dark:bg-gray-800 p-4 shadow-md md:ml-64 fixed top-0 left-0 right-0 z-20">
+  <!-- Hamburger (only visible on small screens) -->
+  <button id="hamburger" class="text-gray-800 dark:text-white text-2xl md:hidden">
+    ☰
+  </button>
 
-    <hr>
+  <!-- Logo -->
+  <div class="text-2xl font-bold text-lg text-indigo-600 dark:text-indigo-400">Money Splitter</div>
 
-    <h3 class="section-title">Create a New Group</h3>
+  <!-- Dark Mode Toggle -->
+  <button id="darkToggle" class="text-lg px-3 py-1 border rounded dark:border-gray-300">
+    🌓
+  </button>
+</header>
 
-    <?php if (isset($_GET['success'])): ?>
-        <p class="success-message">✅ Group created successfully!</p>
-    <?php elseif (isset($_GET['error']) && $_GET['error'] === 'empty'): ?>
-        <p class="error-message">⚠️ Group name cannot be empty.</p>
-    <?php endif; ?>
+  <div class="flex h-screen overflow-hidden">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="bg-white dark:bg-gray-800 w-64 p-4 shadow-md md:translate-x-0 transform -translate-x-full fixed md:relative top-0 left-0 h-full z-40 transition-transform duration-300 ease-in-out">
+      <div class="text-xl font-semibold text-indigo-600 dark:text-indigo-400 mb-6 hidden md:block">Menu</div>
+      <nav class="space-y-2">
+        <button class="nav-link active w-full text-left px-4 py-2 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-700" data-section="create">
+          🏠 Create Group
+        </button>
+        <button class="nav-link w-full text-left px-4 py-2 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-700" data-section="groups">
+          👥 Your Groups
+        </button>
+        <button class="nav-link w-full text-left px-4 py-2 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-700" data-section="invited">
+          📩 Invited Groups
+        </button>
+        <a href="logout.php" class="block px-4 py-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-800 rounded-lg mt-8">
+          🚪 Logout
+        </a>
+        <!-- <div class="mt-6 md:hidden">
+          <button id="darkToggleMobile" class="text-sm px-3 py-1 border rounded dark:border-gray-300 w-full">
+            🌓 Toggle Dark Mode
+          </button>
+        </div> -->
+      </nav>
+    </aside>
 
-    <form class="group-form" action="create_group.php" method="post">
-        <input type="text" name="group_name" placeholder="Enter group name" required class="form-input">
-        <input type="submit" value="Create Group" class="form-button">
-    </form>
+    <!-- Overlay for mobile when sidebar is open -->
+    <div id="overlay" class="fixed inset-0 bg-black opacity-40 hidden z-30 md:hidden"></div>
 
-    <hr>
+    <!-- Main Content -->
+    <main class="flex-1 p-6 overflow-y-auto pt-20 md:ml-55">
+      <!-- Create Group -->
+      <section id="section-create" class="section">
+        <h2 class="text-2xl font-semibold mb-4">👋 Welcome, <?php echo htmlspecialchars($username); ?></h2>
+        <p class="mb-4 text-gray-600 dark:text-gray-300">Your email: <?php echo htmlspecialchars($email); ?></p>
 
-    <h3 class="section-title">Your Groups</h3>
-    <?php if (count($groups) > 0): ?>
-        <ul class="group-list">
-        <?php foreach ($groups as $group): ?>
-            <li class="group-item">
-                <strong><?php echo htmlspecialchars($group['name']); ?></strong><br>
-                <small class="group-date">Created on <?php echo date('d M Y', strtotime($group['created_at'])); ?></small>
-                <a href="group.php?id=<?php echo $group['id']; ?>" class="manage-link">Manage</a>
-            </li>
-        <?php endforeach; ?>
-        </ul>
-    <?php else: ?>
-        <p class="no-groups-message">You haven't created any groups yet.</p>
-    <?php endif; ?>
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+          <h3 class="text-xl font-medium mb-2">Create a New Group</h3>
+          <?php if (isset($_GET['success'])): ?>
+              <p class="text-green-600">✅ Group created successfully!</p>
+          <?php elseif (isset($_GET['error']) && $_GET['error'] === 'empty'): ?>
+              <p class="text-red-600">⚠️ Group name cannot be empty.</p>
+          <?php endif; ?>
+          <form action="create_group.php" method="POST" class="mt-4 space-y-3">
+            <input type="text" name="group_name" placeholder="Group name" required class="w-full border dark:border-gray-600 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:bg-gray-700 dark:text-white" />
+            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg">
+              Create Group
+            </button>
+          </form>
+        </div>
+      </section>
 
-    <hr>
-
-    <h3 class="section-title">Groups You’re Invited To</h3>
-    <?php if (count($joined_groups) > 0): ?>
-        <ul class="invited-group-list">
-            <?php foreach ($joined_groups as $group): ?>
-                <li class="invited-group-item">
-                    <strong><?php echo htmlspecialchars($group['name']); ?></strong> 
-                    <a href="group.php?id=<?php echo $group['id']; ?>" class="view-link">View</a>
-                </li>
+      <!-- Your Groups -->
+      <section id="section-groups" class="section hidden">
+        <h3 class="text-2xl font-medium mb-4">📂 Your Groups</h3>
+        <?php if (count($groups) > 0): ?>
+          <ul class="space-y-4">
+            <?php foreach ($groups as $group): ?>
+              <li class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+                <div class="flex justify-between items-center">
+                  <div>
+                    <strong class="text-lg"><?php echo htmlspecialchars($group['name']); ?></strong>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Created on <?php echo date('d M Y', strtotime($group['created_at'])); ?></p>
+                  </div>
+                  <a href="group.php?id=<?php echo $group['id']; ?>" class="text-indigo-600 dark:text-indigo-400 hover:underline">Manage</a>
+                </div>
+              </li>
             <?php endforeach; ?>
-        </ul>
-    <?php else: ?>
-        <p class="no-invited-groups-message">You haven’t been invited to any groups yet.</p>
-    <?php endif; ?>
-</div>
+          </ul>
+        <?php else: ?>
+          <p class="text-gray-600 dark:text-gray-400">You haven't created any groups yet.</p>
+        <?php endif; ?>
+      </section>
+
+      <!-- Invited Groups -->
+      <section id="section-invited" class="section hidden">
+        <h3 class="text-2xl font-medium mb-4">📨 Groups You’re Invited To</h3>
+        <?php if (count($joined_groups) > 0): ?>
+          <ul class="space-y-4">
+            <?php foreach ($joined_groups as $group): ?>
+              <li class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow flex justify-between items-center">
+                <strong><?php echo htmlspecialchars($group['name']); ?></strong>
+                <a href="group.php?id=<?php echo $group['id']; ?>" class="text-indigo-600 dark:text-indigo-400 hover:underline">View</a>
+              </li>
+            <?php endforeach; ?>
+          </ul>
+        <?php else: ?>
+          <p class="text-gray-600 dark:text-gray-400">You haven’t been invited to any groups yet.</p>
+        <?php endif; ?>
+      </section>
+    </main>
+  </div>
+
+  <!-- JS for interactions -->
+  <script>
+  const navLinks = document.querySelectorAll(".nav-link");
+  const sections = document.querySelectorAll(".section");
+  const hamburger = document.getElementById("hamburger");
+  const sidebar = document.getElementById("sidebar");
+  const overlay = document.getElementById("overlay");
+  const darkToggle = document.getElementById("darkToggle");
+  const darkToggleMobile = document.getElementById("darkToggleMobile");
+
+  // Apply dark mode on page load based on localStorage
+  if (localStorage.getItem("darkMode") === "true") {
+    document.documentElement.classList.add("dark");
+  } else {
+    document.documentElement.classList.remove("dark");
+  }
+
+  function toggleDarkMode() {
+    document.documentElement.classList.toggle("dark");
+    const isDark = document.documentElement.classList.contains("dark");
+    localStorage.setItem("darkMode", isDark);
+  }
+
+  if (darkToggle) darkToggle.addEventListener("click", toggleDarkMode);
+  if (darkToggleMobile) darkToggleMobile.addEventListener("click", toggleDarkMode);
+
+  // Navigation
+  navLinks.forEach(link => {
+    link.addEventListener("click", () => {
+      navLinks.forEach(btn => btn.classList.remove("bg-indigo-100", "dark:bg-indigo-700", "active"));
+      link.classList.add("bg-indigo-100", "dark:bg-indigo-700", "active");
+
+      const target = link.getAttribute("data-section");
+      sections.forEach(section => section.classList.add("hidden"));
+      document.getElementById("section-" + target).classList.remove("hidden");
+
+      if (window.innerWidth < 768) {
+        sidebar.classList.add("-translate-x-full");
+        overlay.classList.add("hidden");
+      }
+    });
+  });
+
+  hamburger.addEventListener("click", () => {
+    sidebar.classList.toggle("-translate-x-full");
+    overlay.classList.toggle("hidden");
+  });
+
+  overlay.addEventListener("click", () => {
+    sidebar.classList.add("-translate-x-full");
+    overlay.classList.add("hidden");
+  });
+</script>
+
 
 </body>
 </html>

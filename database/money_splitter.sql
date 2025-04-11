@@ -60,6 +60,7 @@ CREATE TABLE IF NOT EXISTS settlements (
     to_user_id INT NOT NULL,
     amount DECIMAL(10,2) NOT NULL,
     settled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE,
     FOREIGN KEY (from_user_id) REFERENCES users(id),
     FOREIGN KEY (to_user_id) REFERENCES users(id)
