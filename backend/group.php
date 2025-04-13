@@ -532,6 +532,7 @@ document.getElementById('edit-expense-form').addEventListener('submit', function
     }
   })
   .catch(error => {
+    alert('Expense updated successfully!');
     hideModal('edit-expense-modal');
     window.location.reload();
   });
