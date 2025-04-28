@@ -1,3 +1,28 @@
+<?php
+session_start();
+require_once 'config.php';
+
+
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit;
+}
+
+$user_id = $_SESSION['user_id'];
+
+if (!isset($_GET['id'])) {
+    die("Group ID not provided.");
+}
+
+$group_id = $_GET['id'];
+
+// Fetch group info and validate ownership
+$stmt = $pdo->prepare("SELECT * FROM groups WHERE id = ?");
+$stmt->execute([$group_id]);
+$group = $stmt->fetch();
+
+?>
+
 <!DOCTYPE html>
 <html lang="en" class="transition duration-300">
 
@@ -8,26 +33,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <?php
-  session_start();
-  require_once 'config.php';
-
-  if (!isset($_SESSION['user_id'])) {
-      header("Location: login.php");
-      exit;
-  }
-
-  $user_id = $_SESSION['user_id'];
-
-  if (!isset($_GET['id'])) {
-      die("Group ID not provided.");
-  }
-
-  $group_id = $_GET['id'];
-
-  // Fetch group info and validate ownership
-  $stmt = $pdo->prepare("SELECT * FROM groups WHERE id = ?");
-  $stmt->execute([$group_id]);
-  $group = $stmt->fetch();
+  
 
   if (!$group) {
       die("Group not found.");
@@ -73,26 +79,26 @@
   $stmt->execute([$group_id]);
   $expenses = $stmt->fetchAll();
 
-  // Fetch balances
-  $stmt = $pdo->prepare("
-      SELECT 
-          u.username,
-          u.id AS user_id,
-          COALESCE(SUM(CASE WHEN e.paid_by = u.id THEN e.amount ELSE 0 END), 0) AS total_paid,
-          COALESCE(SUM(sh.share_amount), 0) AS total_owed,
-          COALESCE(SUM(CASE WHEN se.from_user_id = u.id THEN se.amount ELSE 0 END), 0) AS settled_paid,
-          COALESCE(SUM(CASE WHEN se.to_user_id = u.id THEN se.amount ELSE 0 END), 0) AS settled_received
-      FROM
-          (SELECT user_id FROM group_members WHERE group_id = ?
-           UNION SELECT created_by AS user_id FROM groups WHERE id = ?) gm
-      JOIN users u ON u.id = gm.user_id
-      LEFT JOIN expenses e ON e.group_id = ? AND e.paid_by = u.id
-      LEFT JOIN expense_shares sh ON sh.expense_id IN (SELECT id FROM expenses WHERE group_id = ?) AND sh.user_id = u.id
-      LEFT JOIN settlements se ON se.group_id = ? AND (se.from_user_id = u.id OR se.to_user_id = u.id)
-      GROUP BY u.id
-  ");
-  $stmt->execute([$group_id, $group_id, $group_id, $group_id, $group_id]);
-  $balances = $stmt->fetchAll();
+// Fetch balances 
+$stmt = $pdo->prepare("
+    SELECT 
+        u.username,
+        u.id AS user_id,
+        COALESCE(SUM(CASE WHEN e.paid_by = u.id THEN e.amount ELSE 0 END), 0) AS total_paid,
+        COALESCE(SUM(sh.share_amount), 0) AS total_owed,
+        COALESCE(SUM(CASE WHEN se.from_user_id = u.id THEN se.amount ELSE 0 END), 0) AS settled_out,
+        COALESCE(SUM(CASE WHEN se.to_user_id = u.id THEN se.amount ELSE 0 END), 0) AS settled_in
+    FROM
+        (SELECT user_id FROM group_members WHERE group_id = ?
+         UNION SELECT created_by AS user_id FROM groups WHERE id = ?) gm
+    JOIN users u ON u.id = gm.user_id
+    LEFT JOIN expenses e ON e.group_id = ? AND e.paid_by = u.id
+    LEFT JOIN expense_shares sh ON sh.expense_id IN (SELECT id FROM expenses WHERE group_id = ?) AND sh.user_id = u.id
+    LEFT JOIN settlements se ON se.group_id = ? AND (se.from_user_id = u.id OR se.to_user_id = u.id)
+    GROUP BY u.id
+");
+$stmt->execute([$group_id, $group_id, $group_id, $group_id, $group_id]);
+$balances = $stmt->fetchAll();
 
   // Fetch settlements
   $stmt = $pdo->prepare("
@@ -299,21 +305,23 @@
           </h2>
           
           <ul class="space-y-3">
-            <?php foreach ($balances as $b): 
-              $net = round(($b['total_paid'] - $b['total_owed']) + ($b['settled_received'] - $b['settled_paid']), 2); ?>
-              <li class="flex justify-between items-center p-3 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
-                <span class="font-medium"><?php echo htmlspecialchars($b['username']); ?></span>
-                <span class="<?php echo $net > 0 ? 'text-green-600 dark:text-green-400' : ($net < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'); ?>">
-                  <?php if ($net > 0): ?>
-                    Gets ₹<?php echo number_format($net, 2); ?>
-                  <?php elseif ($net < 0): ?>
-                    Owes ₹<?php echo number_format(abs($net), 2); ?>
-                  <?php else: ?>
-                    Settled up
-                  <?php endif; ?>
-                </span>
-              </li>
-            <?php endforeach; ?>
+          <?php foreach ($balances as $b): 
+    $expense_net = $b['total_paid'] - $b['total_owed'];
+    $settlement_net = $b['settled_in'] - $b['settled_out'];
+    $net = round($expense_net - $settlement_net, 2); ?>
+    <li class="flex justify-between items-center p-3 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
+        <span class="font-medium"><?php echo htmlspecialchars($b['username']); ?></span>
+        <span class="<?php echo $net > 0 ? 'text-green-600 dark:text-green-400' : ($net < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'); ?>">
+            <?php if ($net > 0): ?>
+                Gets ₹<?php echo number_format($net, 2); ?>
+            <?php elseif ($net < 0): ?>
+                Owes ₹<?php echo number_format(abs($net), 2); ?>
+            <?php else: ?>
+                Settled up
+            <?php endif; ?>
+        </span>
+    </li>
+<?php endforeach; ?>
           </ul>
         </div>
       </section>
@@ -323,7 +331,7 @@
         <!-- Settle Transaction -->
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <h2 class="text-xl font-semibold mb-4 flex items-center">
-            <i class="fas fa-handshake mr-2"></i> Settle Transaction
+            <i class="fas fa-handshake mr-2"></i> Settle Transactions
           </h2>
           <form method="POST" action="settle_balance.php" class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <input type="hidden" name="group_id" value="<?php echo $group_id; ?>">
@@ -434,6 +442,7 @@
 </div>
 
   <script>
+    
     // Mobile sidebar toggle
     const mobileMenuButton = document.getElementById('mobile-menu-button');
     const closeSidebar = document.getElementById('close-sidebar');
